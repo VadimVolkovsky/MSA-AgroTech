@@ -1,0 +1,57 @@
+@startuml
+!include C4_Container.puml
+
+title MonitorSystem Container Diagram (онлайн + оффлайн работа)
+
+top to bottom direction
+
+Person(director, "Директор", "Просматривает отчёты и общие показатели")
+Person(analyst, "Аналитик", "Настраивает метрики и анализирует данные")
+Person(operator, "Оператор", "Следит за системой мониторинга и реагирует на тревоги")
+
+Container_Boundary(Sensors, "Датчики и шлюз") {
+  Container(FoodSensor, "Датчик кормушки", "Устройство", "Контролирует наличие корма")
+  Container(WaterSensor, "Датчик поилки", "Устройство", "Контролирует наличие воды")
+  Container(WaterFilterSensor, "Датчик фильтрации воды", "Устройство", "Следит за фильтрацией")
+  Container(AnimalTracker, "Система видеонаблюдения", "Камеры", "Наблюдает за животными")
+
+  Container(SensorTracker, "Сервис сбора данных", "Python, FastAPI", "Принимает данные от датчиков, сохраняет в локальной БД при отсутствии интернета, публикует события и передаёт медиа")
+  Container(LocalDB, "Локальная БД", "SQLite/PostgreSQL", "Буфер данных для оффлайн-режима и синхронизации")
+  Container(LocalUI, "Локальное веб-приложение", "Python, FastAPI", "Позволяет оператору работать даже без интернета, читает данные напрямую из LocalDB")
+}
+
+Container(kafka, "Брокер сообщений", "Apache Kafka", "Шина данных между фермами и офисом")
+Container(HeadOfficeSystem, "Центральный сервер", "", "Головной офис. Собирает данные со всех ферм")
+
+Container_Boundary(MonitorSystem, "Система мониторинга (онлайн)") {
+  Container(MainApp, "Веб-приложение", "Python, FastAPI", "Мониторинг и аналитика в онлайн-режиме, уведомления")
+  Container(Database, "Database", "PostgreSQL", "Хранит обработанные данные")
+  Container(AuthService, "Сервис авторизации", "Python", "Аутентификация и управление ролями")
+}
+
+System_Ext(api, "Third-Party API", "REST", "API для мобильных или внешних приложений")
+System_Ext(AI_model, "Нейросетевая модель", "ML/AI", "Анализ фото и видео животных")
+
+' --- Relations ---
+Rel(operator, LocalUI, "Мониторинг и управление в оффлайн-режиме")
+Rel(operator, MainApp, "Мониторинг и управление в онлайн-режиме")
+Rel(director, MainApp, "Просмотр отчётов")
+Rel(analyst, MainApp, "Настройка метрик")
+
+Rel(FoodSensor, SensorTracker, "MQTT/HTTP")
+Rel(WaterSensor, SensorTracker, "MQTT/HTTP")
+Rel(WaterFilterSensor, SensorTracker, "MQTT/HTTP")
+Rel(AnimalTracker, SensorTracker, "RTSP/HTTP")
+
+Rel(SensorTracker, LocalDB, "Запись данных (оффлайн)")
+Rel(LocalUI, LocalDB, "Чтение данных (SQL/REST)")
+Rel(LocalDB, SensorTracker, "Синхронизация batch при восстановлении интернета")
+Rel(SensorTracker, kafka, "Публикация событий (онлайн)")
+Rel(SensorTracker, AI_model, "Передача медиа для анализа")
+
+Rel(MainApp, kafka, "Чтение событий (Kafka Consumer)")
+Rel(MainApp, AuthService, "OAuth2/JWT")
+Rel(kafka, HeadOfficeSystem, "Синхронизация данных")
+Rel(MainApp, Database, "SQL (чтение/запись)")
+Rel(MainApp, api, "REST API для интеграций")
+@enduml
