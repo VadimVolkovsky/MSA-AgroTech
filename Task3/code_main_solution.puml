@@ -1,0 +1,39 @@
+@startuml
+title MonitorSystem Code Diagram
+
+top to bottom direction
+
+!include C4_Component.puml
+
+class Notification {
+  +str name
+  +enum type
+  +enum level
+  +datetime date
+  +bool is_sent
+  +def create_notification()
+  +def send_notification()
+}
+
+class SensorData {
+  +str name
+  +enum type
+  +enum state
+  +datetime date
+  +def add_sensor_data()
+  +def get_sensor_data()
+  +def get_report()
+}
+
+class User {
+  +str name
+  +str email
+  +enum role
+  +def register()
+  +def login()
+}
+
+SensorData "1" -- "0..*" Notification : zero or more
+User "1" -- "0..*" Notification : zero or more
+
+@enduml

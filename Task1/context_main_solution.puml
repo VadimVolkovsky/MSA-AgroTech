@@ -1,0 +1,24 @@
+@startuml
+!include C4_Context.puml
+title SvinoFerma Context Diagram
+
+top to bottom direction
+
+Person(director, "Директор Хозяйства", "Управляет хозяйством")
+Person(analyst, "Аналитик", "Работает с BI системой")
+Person(operator, "Оператор", "Работает с системой мониторинга")
+
+System(AnimalMonitor, "Система мониторинга животных", "Мониторит состояние поросят")
+System(HeadOffice, "Центральная система", "Собирает данные со всех ферм")
+
+System_Ext(api, "Third-Party API", "API для создания мобильного приложения или веб-приложения")
+System_Ext(artificial_intelligence_model, "Нейросетевая модель", "Анализирует состояние животных")
+
+Rel(analyst, AnimalMonitor, "Работает с аналитикой")
+Rel(director, AnimalMonitor,"Использует")
+Rel(operator, AnimalMonitor,"Следит за показателями")
+Rel(AnimalMonitor,api,"Передает данные о состоянии животных")
+Rel(AnimalMonitor,artificial_intelligence_model,"Запрашивает анализ данных о животных")
+Rel(AnimalMonitor, HeadOffice,"Передает данные о состоянии животных")
+
+@enduml
