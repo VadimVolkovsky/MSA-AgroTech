@@ -1,0 +1,45 @@
+@startuml
+title MonitorSystem Web Application Component Diagram
+
+top to bottom direction
+
+!include C4_Component.puml
+
+Container_Boundary(MonitorSystem, "Система мониторинга") {
+  Container(WebApp, "Веб Приложение", "Python, Fastapi", "Мониторинг и аналитика показаний датчиков. Уведомление оператора")
+}
+
+System_Ext(api, "Third-Party API", "REST", "API для мобильных или веб-приложений")
+Container(kafka, "Брокер сообщений", "Apache Kafka", "Шина данных")
+Container(AuthService, "Сервис авторизации", "Python", "Система для авторизации и аутентификации пользователей, управления ролями")
+Container(Database, "Database", "PostgreSQL", "Хранит обработанные данные")
+
+Container(WebApp, "Web Application", "Java, Spring") {
+
+  Component(UserController, "UserController", "Управляет пользователями")
+  Component(UserServiceLayer, "User Service Layer", "Бизнес логика")
+
+  Component(NotificationController, "NotificationController", "Управляет уведомлениями")
+  Component(NotificationServiceLayer, "Notification Service Layer", "Бизнес логика")
+  Component(NotificationRepositoryLayer, "Notification Repository Layer", "Работа в БД с таблицей Notifications")
+
+  Component(SensorController, "SensorController", "Анализирует показатели датчиков")
+  Component(SensorServiceLayer, "Sensor Service Layer", "Бизнес логика")
+  Component(SensorRepositoryLayer, "Sensor Repository Layer", "Работа в БД с таблицей Sensors")
+}
+
+
+Rel(UserController,UserServiceLayer,"Передача запроса на сервисный уровень")
+Rel(UserServiceLayer,AuthService,"Аутентификация и авторизация пользователей (OAuth2/JWT)")
+
+Rel(NotificationController,NotificationServiceLayer,"Передача запроса на сервисный уровень")
+Rel(NotificationServiceLayer,NotificationRepositoryLayer,"Чтение/запись данных")
+Rel(NotificationRepositoryLayer,Database,"Чтение/запись данных (SQL)")
+
+Rel(SensorController,SensorServiceLayer,"Передача запроса на сервисный уровень")
+Rel(SensorServiceLayer,SensorRepositoryLayer,"Чтение/запись данных")
+
+Rel(SensorServiceLayer,api,"Предоставление данных о ферме (REST API)")
+Rel(SensorServiceLayer,kafka,"Данные о состоянии фермы")
+Rel(SensorRepositoryLayer,Database,"Чтение/запись данных (SQL)")
+@enduml
