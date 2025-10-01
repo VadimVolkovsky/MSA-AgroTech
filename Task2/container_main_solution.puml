@@ -13,8 +13,9 @@ Container_Boundary(Sensors, "Датчики") {
   Container(FoodSensor, "Датчик кормушки", "Устройство", "Контролирует наличие корма")
   Container(WaterSensor, "Датчик поилки", "Устройство", "Контролирует наличие воды")
   Container(WaterFilterSensor, "Датчик фильтрации воды", "Устройство", "Следит за фильтрацией")
-  Container(AnimalTracker, "Система видеонаблюдения", "Камеры", "Наблюдает за животными")
-  Container(SensorTracker, "Сервис сбора данных датчиков", "Python, Fastapi", "Принимает данные от датчиков, публикует события и передаёт медиафайлы для анализа")
+  Container(VideoSystem, "Система видеонаблюдения", "Камеры", "Наблюдает за животными")
+  Container(MiniServer, "Шлюз IoT", "Устройство", "Сбор данных с датчиков и камер")
+  Container(SensorTracker, "Сервис обработки данных датчиков", "Python, Fastapi", "Принимает данные от датчиков, публикует события и передаёт медиафайлы для анализа")
 }
 
 Container(kafka, "Брокер сообщений", "Apache Kafka", "Шина данных")
@@ -33,12 +34,15 @@ System_Ext(AI_model, "Нейросетевая модель", "Анализир�
 Rel(operator, MainApp, "")
 Rel(director, MainApp, "")
 Rel(analyst, MainApp, "")
-Rel(FoodSensor,SensorTracker,"")
-Rel(WaterSensor,SensorTracker,"")
-Rel(WaterFilterSensor,SensorTracker,"")
-Rel(AnimalTracker,SensorTracker,"")
+
+Rel(FoodSensor,MiniServer, "Передает данные", "Zigbee")
+Rel(WaterSensor,MiniServer,"Передает данные", "Zigbee")
+Rel(WaterFilterSensor,MiniServer,"Передает данные", "Zigbee")
+Rel(VideoSystem,MiniServer,"Передает данные", "RTSP")
+Rel(MiniServer,SensorTracker,"Передает данные", "HTTP/REST")
 Rel(SensorTracker,kafka, "Публикует обработанные данные")
 Rel(SensorTracker,AI_model,"Передача медиа данных для анализа")
+
 Rel(MainApp,kafka,"Данные о состоянии фермы")
 Rel(MainApp, AuthService, "Аутентификация и авторизация пользователей (OAuth2/JWT)")
 Rel(kafka,HeadOfficeSystem, "Синхронизация данных с головным офисом")
